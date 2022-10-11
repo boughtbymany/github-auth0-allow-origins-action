@@ -32,13 +32,9 @@ export async function run(): Promise<void> {
       client_id: auth0ClientId,
     })
       
-    // TODO: include client name in logs
-    //info('🗝 Retrieved Auth0 client: ' + client.name)
+    info('🗝 Retrieved Auth0 client: ' + client.name)
     
-    // TODO: remove workaround
-    //const currentOrigins = client.web_origins || []
-    const currentOrigins: string[] = []
-    
+    const currentOrigins = client.web_origins || []
     const newOrigins = []
 
     info('❓Checking for existence of URL: ' + deployUrl)
@@ -61,10 +57,11 @@ export async function run(): Promise<void> {
     }
 
     // TODO : when we are happy with enabling auth0 update 
-    await management.updateClient(
-      { client_id: auth0ClientId },
-      { web_origins: [...currentOrigins, ...newOrigins] }
-    )
+    // await management.updateClient(
+    //   { client_id: auth0ClientId },
+    //   { web_origins: [...currentOrigins, ...newOrigins] }
+    // )
+    info('❗️New Web Origins: ' + [...currentOrigins, ...newOrigins])
 
     info('✅ Successfully patched Auth0 client config.')
     info('ℹ️ Added URLs: ' + newOrigins)

@@ -21,7 +21,7 @@ describe('github auth0 allow origins action', () => {
   const infoMock = jest.mocked(info) 
 
   beforeEach( () => {
-    (ManagementClient as any).mockClear()
+    (ManagementClient as jest.Mock).mockClear()
 
     const inputConfig: FakeInput = {
       'auth0-domain': TEST_AUTH0_DOMAIN,
@@ -69,7 +69,7 @@ describe('github auth0 allow origins action', () => {
 
   test('action get expected auth0 client', async () => {
     await run()
-    const mgtClient = (ManagementClient as any).mock.instances[0]   
+    const mgtClient = (ManagementClient as jest.Mock).mock.instances[0]   
     expect(mgtClient.getClient).toBeCalledWith({
       client_id: TEST_AUTH0_CLIENT_ID,
     }) 
@@ -77,7 +77,7 @@ describe('github auth0 allow origins action', () => {
 
   test('action update client with existing and current origins', async () => {
     await run()
-    const mgtClient = (ManagementClient as any).mock.instances[0]   
+    const mgtClient = (ManagementClient as jest.Mock).mock.instances[0]   
 
     // console.log(infoMock.mock.calls)
     // console.log(setFailedMock.mock.calls)
