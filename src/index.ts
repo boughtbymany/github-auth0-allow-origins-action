@@ -32,9 +32,13 @@ export async function run(): Promise<void> {
       client_id: auth0ClientId,
     })
       
-    info('🗝 Retrieved Auth0 client: ' + client.name)
-      
-    const currentOrigins = client.web_origins || []
+    // TODO: include client name in logs
+    //info('🗝 Retrieved Auth0 client: ' + client.name)
+    
+    // TODO: remove workaround
+    //const currentOrigins = client.web_origins || []
+    const currentOrigins: string[] = []
+    
     const newOrigins = []
 
     info('❓Checking for existence of URL: ' + deployUrl)
@@ -57,13 +61,13 @@ export async function run(): Promise<void> {
     }
 
     // TODO : when we are happy with enabling auth0 update 
-    // await management.updateClient(
-    //   { client_id: auth0ClientId },
-    //   { web_origins: [...currentOrigins, ...newOrigins] }
-    // )
+    await management.updateClient(
+      { client_id: auth0ClientId },
+      { web_origins: [...currentOrigins, ...newOrigins] }
+    )
 
-    // info('✅ Successfully patched Auth0 client config.')
-    // info('ℹ️ Added URLs: ' + newOrigins)
+    info('✅ Successfully patched Auth0 client config.')
+    info('ℹ️ Added URLs: ' + newOrigins)
 
   } catch (error) {
     info(`💀 Something went wrong. It is possible that the origin limit has been reached (100 is soft limit). ` +

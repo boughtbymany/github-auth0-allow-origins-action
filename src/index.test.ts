@@ -1,72 +1,41 @@
 jest.mock('@actions/core')
+jest.mock('auth0')
 import { getInput, info, setFailed, setOutput } from '@actions/core'
-//import 'auth0'
+
 import { ManagementClient } from 'auth0'
 import { run } from '.'
 import { FakeInput, getFakeInput } from './test-helpers/fake-input'
 
 
-const managementClientMock = jest.mocked(ManagementClient)
-
-
-//const auth0Mock = jest.mock('auth0')
-
-// const managementClientMock = jest.fn()
-
-
-//const getClientMock = jest.fn()
-
-
-// const auth0Mock = jest.mock('auth0', () => {
-//   return {
-//     ManagementClient: (opts: any) => {
-//       managementClientMock(opts)
-//       return {
-//         getClient: (params: any) => {
-//           return getClientMock(params)
-//         },
-//       }
-//     },
-//   }
-// })
-
-
-
-
-// TODO: fix work in progress
+const TEST_AUTH0_DOMAIN = 'test.dummy.domain'
+const TEST_AUTH0_CLIENT_ID = 'testclient12345678'
+const TEST_AUTH0_MANAGEMENT_CLIENT_ID = 'testmanagementclient12345678'
+const TEST_AUTH0_MANAGEMENT_CLIENT_SECRET = 'testmanagementclientsecret12345678'
+const TEST_DEPLOY_URL = 'https://test.deploy.url'
 
 describe('github auth0 allow origins action', () => {
 
   const getInputMock = jest.mocked(getInput)
   const setFailedMock = jest.mocked(setFailed)
   const setOutputMock = jest.mocked(setOutput)
-  const infoMock = jest.mocked(info)
+  const infoMock = jest.mocked(info) 
 
   beforeEach( () => {
+    (ManagementClient as any).mockClear()
+
     const inputConfig: FakeInput = {
-      'auth0-domain': 'test.dummy.domain',
-      'auth0-client-id': 'testclient12345678',
-      'auth0-management-client-id': 'testmanagementclient12345678',
-      'auth0-management-client-secret': 'testmanagementclient12345678',
-      'deploy-url': 'https://test.deploy.url',
+      'auth0-domain': TEST_AUTH0_DOMAIN,
+      'auth0-client-id': TEST_AUTH0_CLIENT_ID,
+      'auth0-management-client-id': TEST_AUTH0_MANAGEMENT_CLIENT_ID,
+      'auth0-management-client-secret': TEST_AUTH0_MANAGEMENT_CLIENT_SECRET,
+      'deploy-url': TEST_DEPLOY_URL,
     }
 
     getInputMock.mockImplementation((name) => {
       return getFakeInput(inputConfig, name)
     })
 
-    // const auth0Mock = jest.mock('auth0', () => {
-    //   return {
-    //     ManagementClient: (opts: any) => {
-    //       managementClientMock(opts)
-    //       return {
-    //         getClient: (params: any) => {
-    //           return getClientMock(params)
-    //         },
-    //       }
-    //     },
-    //   }
-    // })
+    // TODO: need to mock client.name and client.web_origin
   })
 
   afterEach(() => {
@@ -78,6 +47,11 @@ describe('github auth0 allow origins action', () => {
     expect(setFailedMock).not.toHaveBeenCalled()
   })
 
+  test('action outputs to info', async () => {
+    await run()
+    expect(infoMock).toHaveBeenCalled()
+  })
+
   test('action does not generate any outputs', async () => {
     await run()    
     expect(setOutputMock).not.toHaveBeenCalled()
@@ -85,42 +59,34 @@ describe('github auth0 allow origins action', () => {
 
   test('action creates expected auth0 management client', async () => {
     await run()   
-    expect(managementClientMock).toBeCalledWith({
-      domain: 'test.dummy.domain',
-      clientId: 'testclient12345678',
-      clientSecret: 'testmanagementclient12345678',
-      scope: 'read:clients'
+    expect(ManagementClient).toBeCalledWith({
+      domain: TEST_AUTH0_DOMAIN,
+      clientId: TEST_AUTH0_MANAGEMENT_CLIENT_ID,
+      clientSecret: TEST_AUTH0_MANAGEMENT_CLIENT_SECRET,
+      scope: 'read:clients update:clients'
     }) 
   })
 
-  // test('action gets expected auth0 client', async () => {
-  //   await run()   
-  //   expect(getClientMock).toBeCalledWith({
-  //     client_id: 'testclient12345678',
-  //   }) 
-  // })
+  test('action get expected auth0 client', async () => {
+    await run()
+    const mgtClient = (ManagementClient as any).mock.instances[0]   
+    expect(mgtClient.getClient).toBeCalledWith({
+      client_id: TEST_AUTH0_CLIENT_ID,
+    }) 
+  })
 
-  //auth0Mock.mock('ManagementClient').mock('getClient').mock('name') = 
-  // expect((managementClientMock as any).ManagementClient).toBeTruthy()
+  test('action update client with existing and current origins', async () => {
+    await run()
+    const mgtClient = (ManagementClient as any).mock.instances[0]   
 
-  //expect((auth0 as any).ManagementClient).
+    // console.log(infoMock.mock.calls)
+    // console.log(setFailedMock.mock.calls)
 
-  // if (auth0Mock instanceof Error) {
-  //   expect((auth0Mock as jest.MockInstance).ManagementClient).toBeTruthy() // Constructor ran with no errors
-  // }
-
-  // expect(getClientMock).toBeTruthy() // Constructor ran with no errors
-
-
-  // expect(managementClientMock).toBeCalledWith({
-  //   domain: '',
-  //   clientId: '',
-  //   clientSecret: '',
-  //   scope: 'read:clients'
-  // })
-
-  // expect(getClientMock).toBeCalledWith({      
-  //   client_id: ''
-  // })
+    // TODO : we need to mock web origins and exercise both adding and not needing to add a URL
+    expect(mgtClient.updateClient).toBeCalledWith(
+      { client_id: TEST_AUTH0_CLIENT_ID },
+      { web_origins: [ TEST_DEPLOY_URL ]}
+    )
+  })
 
 })
