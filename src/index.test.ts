@@ -1,11 +1,37 @@
 jest.mock('@actions/core')
-const auth0Mock = jest.mock('auth0')
-
-//import { ManagementClient } from 'auth0'
-
 import { getInput, info, setFailed, setOutput } from '@actions/core'
+//import 'auth0'
+import { ManagementClient } from 'auth0'
 import { run } from '.'
 import { FakeInput, getFakeInput } from './test-helpers/fake-input'
+
+
+const managementClientMock = jest.mocked(ManagementClient)
+
+
+//const auth0Mock = jest.mock('auth0')
+
+// const managementClientMock = jest.fn()
+
+
+//const getClientMock = jest.fn()
+
+
+// const auth0Mock = jest.mock('auth0', () => {
+//   return {
+//     ManagementClient: (opts: any) => {
+//       managementClientMock(opts)
+//       return {
+//         getClient: (params: any) => {
+//           return getClientMock(params)
+//         },
+//       }
+//     },
+//   }
+// })
+
+
+
 
 // TODO: fix work in progress
 
@@ -15,77 +41,86 @@ describe('github auth0 allow origins action', () => {
   const setFailedMock = jest.mocked(setFailed)
   const setOutputMock = jest.mocked(setOutput)
   const infoMock = jest.mocked(info)
-  //const managementClientMock = jest.mocked(ManagementClient)
 
-  //const auth0ManagementClient = jest.mock('ManagementClient')
+  beforeEach( () => {
+    const inputConfig: FakeInput = {
+      'auth0-domain': 'test.dummy.domain',
+      'auth0-client-id': 'testclient12345678',
+      'auth0-management-client-id': 'testmanagementclient12345678',
+      'auth0-management-client-secret': 'testmanagementclient12345678',
+      'deploy-url': 'https://test.deploy.url',
+    }
 
-  beforeEach(() => {
-    //auth0Mock.mockClear()
-    //managementClientMock.mockClear()
+    getInputMock.mockImplementation((name) => {
+      return getFakeInput(inputConfig, name)
+    })
+
+    // const auth0Mock = jest.mock('auth0', () => {
+    //   return {
+    //     ManagementClient: (opts: any) => {
+    //       managementClientMock(opts)
+    //       return {
+    //         getClient: (params: any) => {
+    //           return getClientMock(params)
+    //         },
+    //       }
+    //     },
+    //   }
+    // })
   })
 
   afterEach(() => {
     jest.restoreAllMocks()
   })
 
-  test('basic sanity', async () => {
-
-    const inputConfig: FakeInput = {
-      'auth0-domain': 'dummy.domain',
-      'auth0-client-id': 'client12345678',
-      'auth0-management-client-id': 'managementclient12345678',
-      'auth0-management-client-secret': 'managementclient12345678',
-      'deploy-url': 'https://test.dummy.deploy.url',
-    }
-
-    getInputMock.mockImplementation((name) => {
-      return getFakeInput(inputConfig, name)
-    })
-    
-    const getClientMock = jest.fn().mockImplementation(async () => {
-      return { 
-        web_origins: ['foo', 'bar'], 
-        name: 'mockClientName'
-      }
-    })
-    
-    // managementClientMock.mockImplementation(() => {
-    //   return { getClient: getClientMock }
-    // })
-        
-    // const auth0Mock = jest.mock('auth0', () => {
-    //   return jest.fn().mockImplementation(() => {
-    //     return { ManagementClient: managementClientMock }
-    //   })
-    // })
-    
+  test('action run does not fail', async () => {
     await run()
-    //auth0Mock.enableAutomock()
-    //auth0Mock.mock('ManagementClient').mock('getClient').mock('name') = 
-    console.log(auth0Mock)
-    // expect((managementClientMock as any).ManagementClient).toBeTruthy()
-
-    //expect((auth0 as any).ManagementClient).
-
-    // if (auth0Mock instanceof Error) {
-    //   expect((auth0Mock as jest.MockInstance).ManagementClient).toBeTruthy() // Constructor ran with no errors
-    // }
-
-    // expect(getClientMock).toBeTruthy() // Constructor ran with no errors
-
-    // expect(setFailedMock).not.toHaveBeenCalled()
-
-    // expect(managementClientMock).toBeCalledWith({
-    //   domain: '',
-    //   clientId: '',
-    //   clientSecret: '',
-    //   scope: 'read:clients'
-    // })
-
-    // expect(getClientMock).toBeCalledWith({      
-    //   client_id: ''
-    // })
-
+    expect(setFailedMock).not.toHaveBeenCalled()
   })
+
+  test('action does not generate any outputs', async () => {
+    await run()    
+    expect(setOutputMock).not.toHaveBeenCalled()
+  })
+
+  test('action creates expected auth0 management client', async () => {
+    await run()   
+    expect(managementClientMock).toBeCalledWith({
+      domain: 'test.dummy.domain',
+      clientId: 'testclient12345678',
+      clientSecret: 'testmanagementclient12345678',
+      scope: 'read:clients'
+    }) 
+  })
+
+  // test('action gets expected auth0 client', async () => {
+  //   await run()   
+  //   expect(getClientMock).toBeCalledWith({
+  //     client_id: 'testclient12345678',
+  //   }) 
+  // })
+
+  //auth0Mock.mock('ManagementClient').mock('getClient').mock('name') = 
+  // expect((managementClientMock as any).ManagementClient).toBeTruthy()
+
+  //expect((auth0 as any).ManagementClient).
+
+  // if (auth0Mock instanceof Error) {
+  //   expect((auth0Mock as jest.MockInstance).ManagementClient).toBeTruthy() // Constructor ran with no errors
+  // }
+
+  // expect(getClientMock).toBeTruthy() // Constructor ran with no errors
+
+
+  // expect(managementClientMock).toBeCalledWith({
+  //   domain: '',
+  //   clientId: '',
+  //   clientSecret: '',
+  //   scope: 'read:clients'
+  // })
+
+  // expect(getClientMock).toBeCalledWith({      
+  //   client_id: ''
+  // })
 
 })

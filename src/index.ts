@@ -7,19 +7,24 @@ import { info, setFailed, getInput} from "@actions/core"
 import { ManagementClient } from 'auth0'
 
 export async function run(): Promise<void> {
+  let auth0Domain
+  let auth0ClientId
+  let auth0MgtClientId
+  let auth0MgtClientSecret
+  let deployUrl
   try {
-    const auth0Domain = getInput('auth0-domain', { required: true })
-    const auth0ClientId = getInput('auth0-client-id', { required: true })
-    const auth0MgtClientId = getInput('auth0-management-client-id', { required: true })
-    const auth0MgtClientSecret = getInput('auth0-management-client-secret', { required: true })
-    const deployUrl = getInput('deploy-url', { required: true })
+    auth0Domain = getInput('auth0-domain', { required: true })
+    auth0ClientId = getInput('auth0-client-id', { required: true })
+    auth0MgtClientId = getInput('auth0-management-client-id', { required: true })
+    auth0MgtClientSecret = getInput('auth0-management-client-secret', { required: true })
+    deployUrl = getInput('deploy-url', { required: true })
 
     const management = new ManagementClient({
       domain: auth0Domain,
       clientId: auth0MgtClientId,
       clientSecret: auth0MgtClientSecret,
       scope: 'read:clients',
-      // TODO : restore when safe
+      // TODO : restore when we are happy with enabling auth0 update
       // scope: 'read:clients update:clients',
     })
       
@@ -51,7 +56,19 @@ export async function run(): Promise<void> {
       return
     }
 
+    // TODO : when we are happy with enabling auth0 update 
+    // await management.updateClient(
+    //   { client_id: auth0ClientId },
+    //   { web_origins: [...currentOrigins, ...newOrigins] }
+    // )
+
+    // info('✅ Successfully patched Auth0 client config.')
+    // info('ℹ️ Added URLs: ' + newOrigins)
+
   } catch (error) {
+    info(`💀 Something went wrong. It is possible that the origin limit has been reached (100 is soft limit). ` +
+          `An admin needs to go into the ${auth0Domain} tenant and delete some older ones.`)
+
     setFailed(JSON.stringify(error))
   }
 }
