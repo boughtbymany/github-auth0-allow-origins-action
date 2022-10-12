@@ -23,7 +23,9 @@ export async function run(): Promise<void> {
       domain: auth0Domain,
       clientId: auth0MgtClientId,
       clientSecret: auth0MgtClientSecret,
-      scope: 'read:clients update:clients',
+      // TODO: restore update permission when we are happy
+      scope: 'read:clients',
+      // scope: 'read:clients update:clients',
     })
       
     const client = await management.getClient({
