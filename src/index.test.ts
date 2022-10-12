@@ -19,9 +19,10 @@ describe('github auth0 allow origins action', () => {
   const setFailedMock = jest.mocked(setFailed)
   const setOutputMock = jest.mocked(setOutput)
   const infoMock = jest.mocked(info) 
+  const managementClientMock = jest.mocked(ManagementClient)
 
   beforeEach( () => {
-    (ManagementClient as jest.Mock).mockClear()
+    managementClientMock.mockClear()
 
     const inputConfig: FakeInput = {
       'auth0-domain': TEST_AUTH0_DOMAIN,
@@ -59,7 +60,7 @@ describe('github auth0 allow origins action', () => {
 
   test('action creates expected auth0 management client', async () => {
     await run()   
-    expect(ManagementClient).toBeCalledWith({
+    expect(managementClientMock).toBeCalledWith({
       domain: TEST_AUTH0_DOMAIN,
       clientId: TEST_AUTH0_MANAGEMENT_CLIENT_ID,
       clientSecret: TEST_AUTH0_MANAGEMENT_CLIENT_SECRET,
@@ -69,7 +70,7 @@ describe('github auth0 allow origins action', () => {
 
   test('action get expected auth0 client', async () => {
     await run()
-    const mgtClient = (ManagementClient as jest.Mock).mock.instances[0]   
+    const mgtClient = managementClientMock.mock.instances[0]   
     expect(mgtClient.getClient).toBeCalledWith({
       client_id: TEST_AUTH0_CLIENT_ID,
     }) 
@@ -77,10 +78,7 @@ describe('github auth0 allow origins action', () => {
 
   test('action update client with existing and current origins', async () => {
     await run()
-    const mgtClient = (ManagementClient as jest.Mock).mock.instances[0]   
-
-    // console.log(infoMock.mock.calls)
-    // console.log(setFailedMock.mock.calls)
+    const mgtClient = managementClientMock.mock.instances[0]   
 
     // TODO : we need to mock web origins and exercise both adding and not needing to add a URL
     expect(mgtClient.updateClient).toBeCalledWith(

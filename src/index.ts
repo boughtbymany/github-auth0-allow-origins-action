@@ -23,9 +23,7 @@ export async function run(): Promise<void> {
       domain: auth0Domain,
       clientId: auth0MgtClientId,
       clientSecret: auth0MgtClientSecret,
-      scope: 'read:clients',
-      // TODO : restore when we are happy with enabling auth0 update
-      // scope: 'read:clients update:clients',
+      scope: 'read:clients update:clients',
     })
       
     const client = await management.getClient({
@@ -61,10 +59,10 @@ export async function run(): Promise<void> {
     //   { client_id: auth0ClientId },
     //   { web_origins: [...currentOrigins, ...newOrigins] }
     // )
-    info('❗️New Web Origins: ' + [...currentOrigins, ...newOrigins])
+    info('❗️Need to write Web Origins: ' + [...currentOrigins, ...newOrigins])
 
-    info('✅ Successfully patched Auth0 client config.')
-    info('ℹ️ Added URLs: ' + newOrigins)
+    // info('✅ Successfully patched Auth0 client config.')
+    // info('ℹ️ Added URLs: ' + newOrigins)
 
   } catch (error) {
     info(`💀 Something went wrong. It is possible that the origin limit has been reached (100 is soft limit). ` +
