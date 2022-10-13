@@ -1,0 +1,19 @@
+{
+    "testEnvironment": "node",
+    "verbose": true,
+    "clearMocks": true,
+    "coverageReporters": ["json", "lcov", "text"],
+    "coveragePathIgnorePatterns": [
+        "/node_modules/",
+        "/dist/"
+    ],
+    "roots": [
+        "<rootDir>/src"
+    ],
+    "testMatch": [
+        "**/?(*.)+(test|spec)\\.ts"
+    ],
+    "transform": {
+        "^.+\\.(ts|tsx)$": "ts-jest"
+    }
+}

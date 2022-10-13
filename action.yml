@@ -1,0 +1,22 @@
+name: 'Github Auth0 Allow Origins Action'
+description: 'GitHub action to add Deploy Preview URLs to an Auth0 origin allow list'
+inputs:
+  auth0-domain:
+    description: 'auth0 domain'
+    required: true
+  auth0-client-id:
+    description: 'auth0 client id'
+    required: true
+  auth0-management-client-id:
+    description: 'auth0 management client if'
+    required: true
+  auth0-management-client-secret:
+    description: 'auth0 management client secret'
+    required: true
+  deploy-url:
+    description: 'auth0 deploy url'
+    required: true
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
